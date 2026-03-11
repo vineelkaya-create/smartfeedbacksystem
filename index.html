@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Feedback — Courses & Subjects</title>
+
+  <!-- React + Babel CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <style>
+    :root {
+  --primary: #4a90e2;
+  --primary-dark: #357ABD;
+  --secondary: #6c757d;
+  --background: #f5f7fa;
+  --card-bg: #ffffff;
+  --text-dark: #333;
+  --text-light: #666;
+  --border-color: #e0e6ef;
+  --radius: 10px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--background);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+  width: 100%;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+}
+
+.btn.secondary {
+  background: var(--secondary);
+}
+
+.wrap {
+  width: 100%;
+  height: calc(100% - 60px); /* subtract header height */
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-dark);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  font-size: 14px;
+  background: #fff;
+  transition: border 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.feedback-box {
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--background);
+  margin-top: 12px;
+}
+
+.positive { color: green; font-weight: 600; }
+.negative { color: red; font-weight: 600; }
+.neutral { color: gray; font-weight: 600; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background: var(--primary);
+  color: #fff;
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 30px;
+  width: 100%;
+}
+
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+      // Course catalog: UG (4 years) and PG (2 years) with subjects per year
+      const courseCatalog = {
+        UG: {
+          CSE: {
+            "Year 1": ["Programming I", "Mathematics I", "Physics", "Engineering Drawing"],
+            "Year 2": ["Data Structures", "Discrete Math", "Digital Logic", "OOP"],
+            "Year 3": ["Algorithms", "Operating Systems", "DBMS", "Computer Networks"],
+            "Year 4": ["AI", "Machine Learning", "Software Engineering", "Project"]
+          },
+          AI: {
+            "Year 1": ["Programming I", "Mathematics I", "Physics", "Intro to AI"],
+            "Year 2": ["Data Structures", "Probability", "Linear Algebra", "OOP"],
+            "Year 3": ["Machine Learning I", "Neural Networks", "NLP", "AI Lab"],
+            "Year 4": ["Advanced ML", "Reinforcement Learning", "AI Ethics", "Project"]
+          },
+          DS: {
+            "Year 1": ["Programming I", "Mathematics I", "Statistics", "Intro to DS"],
+            "Year 2": ["Data Structures", "Probability", "Database Systems", "OOP"],
+            "Year 3": ["Data Mining", "Big Data", "ML for DS", "Visualization"],
+            "Year 4": ["Advanced Analytics", "Time Series", "Capstone Project", "Elective"]
+          },
+          Civil: {
+            "Year 1": ["Engineering Mechanics", "Mathematics I", "Physics", "Drawing"],
+            "Year 2": ["Strength of Materials", "Surveying", "Fluid Mechanics", "Materials"],
+            "Year 3": ["Structural Analysis", "Geotechnical Engineering", "Transportation", "Design"],
+            "Year 4": ["Construction Management", "Environmental Engg", "Project", "Elective"]
+          },
+          Mechanical: {
+            "Year 1": ["Engineering Mechanics", "Mathematics I", "Physics", "Workshop"],
+            "Year 2": ["Thermodynamics", "Material Science", "Manufacturing", "Dynamics"],
+            "Year 3": ["Machine Design", "Heat Transfer", "Fluid Mechanics", "Control Systems"],
+            "Year 4": ["Automotive Engg", "Robotics", "Project", "Elective"]
+          },
+          ECE: {
+            "Year 1": ["Circuit Theory", "Mathematics I", "Physics", "Programming I"],
+            "Year 2": ["Signals & Systems", "Electronics I", "Digital Logic", "OOP"],
+            "Year 3": ["Communication Systems", "Microprocessors", "Control Systems", "Networks"],
+            "Year 4": ["VLSI", "Embedded Systems", "Project", "Elective"]
+          },
+          EEE: {
+            "Year 1": ["Circuit Theory", "Mathematics I", "Physics", "Programming I"],
+            "Year 2": ["Electromagnetics", "Power Systems I", "Electronics I", "OOP"],
+            "Year 3": ["Power Systems II", "Control Systems", "Machines", "Protection"],
+            "Year 4": ["Renewable Energy", "Smart Grids", "Project", "Elective"]
+          }
+        },
+        PG: {
+          CSE: {
+            "Year 1": ["Advanced Algorithms", "Distributed Systems", "Research Methods"],
+            "Year 2": ["Advanced ML", "Thesis", "Elective"]
+          },
+          AI: {
+            "Year 1": ["Advanced ML", "Deep Learning", "Probabilistic Models"],
+            "Year 2": ["Reinforcement Learning", "Thesis", "Elective"]
+          },
+          DS: {
+            "Year 1": ["Advanced Analytics", "Big Data Systems", "Research Methods"],
+            "Year 2": ["Time Series & Forecasting", "Thesis", "Elective"]
+          },
+          Civil: {
+            "Year 1": ["Advanced Structural Analysis", "Geotechnical Research", "Design"],
+            "Year 2": ["Project/Thesis", "Elective"]
+          },
+          Mechanical: {
+            "Year 1": ["Advanced Thermodynamics", "Finite Element Methods", "Design"],
+            "Year 2": ["Thesis", "Elective"]
+          },
+          ECE: {
+            "Year 1": ["Advanced Communication", "VLSI Design", "Research Methods"],
+            "Year 2": ["Thesis", "Elective"]
+          },
+          EEE: {
+            "Year 1": ["Advanced Power Systems", "Smart Grid Tech", "Research Methods"],
+            "Year 2": ["Thesis", "Elective"]
+          }
+        }
+      };
+
+      // Demo in-memory stores
+      const [students, setStudents] = useState([]);
+      const [teachers, setTeachers] = useState([]);
+      const [feedbacks, setFeedbacks] = useState([]);
+      const [attendanceCounts, setAttendanceCounts] = useState({});
+      const [view, setView] = useState('home');
+      const [auth, setAuth] = useState({ loggedIn:false, role:null, user:null });
+
+      // Simple sentiment analyzer (demo)
+      function analyzeSentiment(text) {
+        const t = text.toLowerCase();
+        if (t.includes('good')||t.includes('excellent')||t.includes('helpful')||t.includes('great')) return 'positive';
+        if (t.includes('bad')||t.includes('poor')||t.includes('boring')||t.includes('terrible')) return 'negative';
+        return 'neutral';
+      }
+
+      // Helpers to get years for level
+      function getYearsForLevel(level) {
+        return level === 'UG' ? ["Year 1","Year 2","Year 3","Year 4"] : ["Year 1","Year 2"];
+      }
+
+      // Registration handlers (students choose level, department, year)
+      function registerStudent(e) {
+        e.preventDefault();
+        const f = e.target;
+        const data = {
+          name: f.name.value.trim(),
+          email: f.email.value.trim(),
+          roll: f.roll.value.trim(),
+          password: f.password.value,
+          level: f.level.value,
+          department: f.department.value,
+          year: f.year.value,
+          section: f.section.value || 'A',
+          academicYear: f.academicYear.value || '2025-2026',
+          subjects: []
+        };
+        if (!data.name || !data.email || !data.roll || !data.password || !data.level || !data.department || !data.year) {
+          alert('Please fill required fields.');
+          return;
+        }
+        // populate subjects from catalog
+        const subjects = (courseCatalog[data.level] && courseCatalog[data.level][data.department] && courseCatalog[data.level][data.department][data.year]) || [];
+        data.subjects = subjects.slice();
+        // initialize attendance percentages to 0
+        const attendance = {};
+        data.subjects.forEach(s => attendance[s] = 0);
+        data.attendance = attendance;
+        setStudents(prev => [...prev, data]);
+        alert('Student registered. Subjects auto-populated from course catalog.');
+        f.reset();
+        setView('login');
+      }
+
+      function registerTeacher(e) {
+        e.preventDefault();
+        const f = e.target;
+        const data = {
+          name: f.name.value.trim(),
+          email: f.email.value.trim(),
+          username: f.username.value.trim(),
+          password: f.password.value,
+          department: f.department.value,
+          level: f.level.value,
+          subjects: Array.from(f.subjects.selectedOptions).map(o => o.value)
+        };
+        if (!data.name || !data.email || !data.username || !data.password || !data.department || !data.level) {
+          alert('Please fill required fields.');
+          return;
+        }
+        setTeachers(prev => [...prev, data]);
+        alert('Faculty registered.');
+        f.reset();
+        setView('login');
+      }
+
+      // Login
+      function handleLogin(e) {
+        e.preventDefault();
+        const f = e.target;
+        const role = f.role.value;
+        const id = f.identifier.value.trim();
+        const pwd = f.password.value;
+        if (role === 'student') {
+          const user = students.find(s => (s.email === id || s.roll === id) && s.password === pwd);
+          if (!user) { alert('Invalid student credentials'); return; }
+          setAuth({ loggedIn:true, role:'student', user });
+          setView('dashboard');
+        } else {
+          const user = teachers.find(t => (t.email === id || t.username === id) && t.password === pwd);
+          if (!user) { alert('Invalid faculty credentials'); return; }
+          setAuth({ loggedIn:true, role:'teacher', user });
+          setView('dashboard');
+        }
+        f.reset();
+      }
+
+      function logout() {
+        setAuth({ loggedIn:false, role:null, user:null });
+        setView('home');
+      }
+
+      // Student submits feedback (anonymous)
+      function submitFeedback(e) {
+        e.preventDefault();
+        const f = e.target;
+        const subject = f.subject.value;
+        const text = f.text.value.trim();
+        const rating = f.rating.value;
+        if (!subject || !text) { alert('Fill feedback'); return; }
+        const sentiment = analyzeSentiment(text);
+        setFeedbacks(prev => [...prev, { subject, text, rating, sentiment, timestamp: new Date().toISOString() }]);
+        alert('Feedback submitted anonymously.');
+        f.reset();
+      }
+
+      // Teacher marks attendance
+      function markAttendance(subject) {
+        setAttendanceCounts(prev => ({ ...prev, [subject]: (prev[subject] || 0) + 1 }));
+        // update student attendance demo: increment for all students enrolled in that subject
+        setStudents(prev => prev.map(s => {
+          if (s.subjects && s.subjects.includes(subject)) {
+            const att = { ...(s.attendance || {}) };
+            att[subject] = (att[subject] || 0) + 1;
+            return { ...s, attendance: att };
+          }
+          return s;
+        }));
+        alert(`Attendance marked for ${subject}`);
+      }
+
+      // Teacher manage subjects: add from catalog year-level mapping
+      function addSubjectForTeacher(subject) {
+        setTeachers(prev => prev.map(t => {
+          if (t.username === auth.user.username) {
+            if (!t.subjects.includes(subject)) t.subjects.push(subject);
+            return { ...t };
+          }
+          return t;
+        }));
+        setAuth(a => ({ ...a, user: { ...a.user, subjects: [...new Set([...(a.user.subjects||[]), subject])] } }));
+      }
+
+      function removeSubjectForTeacher(subject) {
+        setTeachers(prev => prev.map(t => {
+          if (t.username === auth.user.username) {
+            t.subjects = t.subjects.filter(s => s !== subject);
+            return { ...t };
+          }
+          return t;
+        }));
+        setAuth(a => ({ ...a, user: { ...a.user, subjects: (a.user.subjects||[]).filter(s => s !== subject) } }));
+      }
+
+      // Helper: today's schedule
+      function todaysSchedule(subjects) {
+        const times = ["9:00 AM","11:00 AM","1:00 PM","3:00 PM","5:00 PM"];
+        return (subjects || []).map((s,i) => ({ subject:s, time: times[i % times.length] }));
+      }
+
+      // UI
+      return (
+        <div className="wrap">
+          <header>
+            <h1>AI-ENHANCED SMART FEEDBACK SYSTEM</h1>
+            <div className="nav">
+              <button className="btn" onClick={() => setView('home')}>Home</button>
+              <button className="btn secondary" onClick={() => setView('register-student')}>Student Register</button>
+              <button className="btn secondary" onClick={() => setView('register-teacher')}>Faculty Register</button>
+              <button className="btn" onClick={() => setView('login')}>Login</button>
+              {auth.loggedIn && <button className="btn" onClick={logout}>Logout</button>}
+            </div>
+          </header>
+
+          {/* HOME */}
+          {view === 'home' && (
+            <div className="card">
+              <h2>Welcome</h2>
+              <p className="small">This prototype supports UG (4-year) and PG (2-year) programs across departments. Students register by selecting level, department, and year; subjects are auto-populated from the course catalog. Faculty can register and manage subjects. Anonymous AI-analyzed feedback is available to faculty.</p>
+              <div style={{marginTop:12}} className="row">
+                <button className="btn" onClick={() => setView('register-student')}>Register Student</button>
+                <button className="btn" onClick={() => setView('register-teacher')}>Register Faculty</button>
+                <button className="btn" onClick={() => setView('login')}>Login</button>
+              </div>
+
+              <div style={{marginTop:18}}>
+                <h3>Course Catalog Preview</h3>
+                <div className="grid">
+                  <div className="card">
+                    <strong>UG Programs (4 years)</strong>
+                    <ul>
+                      {Object.keys(courseCatalog.UG).map(dep => <li key={dep}>{dep}</li>)}
+                    </ul>
+                  </div>
+                  <div className="card">
+                    <strong>PG Programs (2 years)</strong>
+                    <ul>
+                      {Object.keys(courseCatalog.PG).map(dep => <li key={dep}>{dep}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STUDENT REGISTRATION */}
+          {view === 'register-student' && (
+            <div className="card">
+              <h2>Student Registration</h2>
+              <form onSubmit={registerStudent}>
+                <div className="grid">
+                  <div>
+                    <label>Full Name *</label>
+                    <input name="name" required />
+                    <label>Email *</label>
+                    <input name="email" type="email" required />
+                    <label>Roll Number *</label>
+                    <input name="roll" required />
+                    <label>Password *</label>
+                    <input name="password" type="password" required />
+                  </div>
+                  <div>
+                    <label>Level *</label>
+                    <select name="level" required onChange={(e) => {
+                      // when level changes, update year options client-side (no state needed)
+                      const level = e.target.value;
+                      const yearSelect = document.querySelector('select[name="year"]');
+                      if (yearSelect) {
+                        yearSelect.innerHTML = '';
+                        const years = level === 'UG' ? ["Year 1","Year 2","Year 3","Year 4"] : ["Year 1","Year 2"];
+                        years.forEach(y => {
+                          const opt = document.createElement('option'); opt.value = y; opt.text = y; yearSelect.appendChild(opt);
+                        });
+                      }
+                    }}>
+                      <option value="">--Select Level--</option>
+                      <option value="UG">UG (4 years)</option>
+                      <option value="PG">PG (2 years)</option>
+                    </select>
+
+                    <label>Department *</label>
+                    <select name="department" required>
+                      <option value="">--Select Department--</option>
+                      {Object.keys(courseCatalog.UG).map(dep => <option key={dep} value={dep}>{dep}</option>)}
+                    </select>
+
+                    <label>Year *</label>
+                    <select name="year" required>
+                      <option value="">--Select Year--</option>
+                    </select>
+
+                    <label>Section</label>
+                    <input name="section" placeholder="e.g., CSE-A" />
+                    <label>Academic Year</label>
+                    <select name="academicYear">
+                      <option>2025-2026</option>
+                      <option>2024-2025</option>
+                      <option>2023-2024</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{marginTop:12}}>
+                  <button className="btn" type="submit">Register Student</button>
+                  <button type="button" className="btn secondary" style={{marginLeft:8}} onClick={() => setView('home')}>Cancel</button>
+                </div>
+                <p className="muted small" style={{marginTop:8}}>After registration, subjects for the chosen level/department/year are auto-populated into the student profile.</p>
+              </form>
+            </div>
+          )}
+
+          {/* TEACHER REGISTRATION */}
+          {view === 'register-teacher' && (
+            <div className="card">
+              <h2>Faculty Registration</h2>
+              <form onSubmit={registerTeacher}>
+                <div className="grid">
+                  <div>
+                    <label>Full Name *</label>
+                    <input name="name" required />
+                    <label>Email *</label>
+                    <input name="email" type="email" required />
+                    <label>Username *</label>
+                    <input name="username" required />
+                    <label>Password *</label>
+                    <input name="password" type="password" required />
+                  </div>
+                  <div>
+                    <label>Level *</label>
+                    <select name="level" required>
+                      <option value="">--Select Level--</option>
+                      <option value="UG">UG</option>
+                      <option value="PG">PG</option>
+                    </select>
+                    <label>Department *</label>
+                    <select name="department" required>
+                      <option value="">--Select Department--</option>
+                      {Object.keys(courseCatalog.UG).map(dep => <option key={dep} value={dep}>{dep}</option>)}
+                    </select>
+                    <label>Assign Subjects (Ctrl/Cmd+click to select multiple)</label>
+                    <select name="subjects" multiple size="6">
+                      {/* populate with a flattened list of all subjects across catalog */}
+                      {Object.keys(courseCatalog.UG).flatMap(dep => {
+                        const years = Object.values(courseCatalog.UG[dep]);
+                        return years.flat();
+                      }).filter((v,i,a) => a.indexOf(v)===i).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <p className="muted small">You can assign subjects you will teach.</p>
+                  </div>
+                </div>
+                <div style={{marginTop:12}}>
+                  <button className="btn" type="submit">Register Faculty</button>
+                  <button type="button" className="btn secondary" style={{marginLeft:8}} onClick={() => setView('home')}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* LOGIN */}
+          {view === 'login' && (
+            <div className="card">
+              <h2>Login</h2>
+              <form onSubmit={handleLogin}>
+                <label>Role</label>
+                <select name="role" required>
+                  <option value="">--Select Role--</option>
+                  <option value="student">Student</option>
+                  <option value="teacher">Faculty</option>
+                </select>
+                <label>Email / Username / Roll</label>
+                <input name="identifier" placeholder="Students: email or roll. Faculty: email or username" required />
+                <label>Password</label>
+                <input name="password" type="password" required />
+                <div style={{marginTop:12}}>
+                  <button className="btn" type="submit">Login</button>
+                  <button type="button" className="btn secondary" style={{marginLeft:8}} onClick={() => setView('home')}>Cancel</button>
+                </div>
+              </form>
+              <p className="small muted" style={{marginTop:10}}>Demo: no persistent DB. Use the credentials you registered with.</p>
+            </div>
+          )}
+
+          {/* DASHBOARD: STUDENT */}
+          {view === 'dashboard' && auth.loggedIn && auth.role === 'student' && (
+            <div>
+              <div className="card">
+                <h2>Student Dashboard</h2>
+                <div className="grid">
+                  <div>
+                    <p><strong>Name:</strong> {auth.user.name}</p>
+                    <p><strong>Roll:</strong> {auth.user.roll}</p>
+                    <p><strong>Email:</strong> {auth.user.email}</p>
+                    <p><strong>Level:</strong> {auth.user.level} &nbsp; <strong>Dept:</strong> {auth.user.department}</p>
+                    <p><strong>Year:</strong> {auth.user.year} &nbsp; <strong>Section:</strong> {auth.user.section}</p>
+                    <p><strong>Academic Year:</strong> {auth.user.academicYear}</p>
+                  </div>
+
+                  <div>
+                    <p><strong>Subjects / Course Details</strong></p>
+                    <ul>{(auth.user.subjects || []).map(s => <li key={s}>{s}</li>)}</ul>
+
+                    <p className="small"><strong>Today's Schedule</strong></p>
+                    <ul>{todaysSchedule(auth.user.subjects || []).map((it,i) => <li key={i}>{it.time} — {it.subject}</li>)}</ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3>Attendance Tracking</h3>
+                <table>
+                  <thead><tr><th>Subject</th><th>Attendance (%)</th></tr></thead>
+                  <tbody>
+                    {(auth.user.attendance && Object.keys(auth.user.attendance).length) ? Object.entries(auth.user.attendance).map(([sub,val]) => <tr key={sub}><td>{sub}</td><td>{val}%</td></tr>) : <tr><td colSpan="2" className="muted">No attendance data</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="card">
+                <h3>Exam Results & Schedule</h3>
+                <p className="muted small">Demo exam schedule and results are shown here.</p>
+                <table>
+                  <thead><tr><th>Subject</th><th>Date</th><th>Result</th></tr></thead>
+                  <tbody>
+                    {(auth.user.subjects || []).map((s,i) => <tr key={s}><td>{s}</td><td>{new Date(Date.now() + (i+5)*24*3600*1000).toLocaleDateString()}</td><td>Pending</td></tr>)}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="card">
+                <h3>Submit Anonymous Feedback</h3>
+                <form onSubmit={submitFeedback}>
+                  <label>Subject</label>
+                  <select name="subject" required>
+                    {(auth.user.subjects || []).map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <label>Feedback</label>
+                  <textarea name="text" placeholder="Write your feedback (anonymous)..." required></textarea>
+                  <label>Rating (1-5)</label>
+                  <input name="rating" type="number" min="1" max="5" defaultValue="5" required />
+                  <div style={{marginTop:12}}>
+                    <button className="btn" type="submit">Submit Feedback</button>
+                    <button className="btn secondary" type="button" style={{marginLeft:8}} onClick={() => setView('home')}>Back</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* DASHBOARD: TEACHER */}
+          {view === 'dashboard' && auth.loggedIn && auth.role === 'teacher' && (
+            <div>
+              <div className="card">
+                <h2>Faculty Dashboard</h2>
+                <p><strong>Name:</strong> {auth.user.name}</p>
+                <p><strong>Email:</strong> {auth.user.email}</p>
+                <p><strong>Department:</strong> {auth.user.department} &nbsp; <strong>Level:</strong> {auth.user.level}</p>
+
+                <div style={{marginTop:12}}>
+                  <strong>Subjects Teaching</strong>
+                  <ul>
+                    {(auth.user.subjects || []).map(s => (
+                      <li key={s} style={{marginBottom:8}}>
+                        {s}
+                        <button style={{marginLeft:10}} className="btn" onClick={() => markAttendance(s)}>Mark Attendance</button>
+                        <span style={{marginLeft:10}} className="muted">Count: {attendanceCounts[s] || 0}</span>
+                        <button style={{marginLeft:10}} className="btn secondary" onClick={() => removeSubjectForTeacher(s)}>Remove</button>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div style={{marginTop:12}}>
+                    <label>Add Subject from Catalog</label>
+                    <select id="add-subject-select">
+                      <option value="">--Select subject--</option>
+                      {/* flatten catalog subjects */}
+                      {Object.keys(courseCatalog.UG).flatMap(dep => {
+                        return Object.values(courseCatalog.UG[dep]).flat();
+                      }).filter((v,i,a) => a.indexOf(v)===i).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <button className="btn" style={{marginLeft:8}} onClick={() => {
+                      const sel = document.getElementById('add-subject-select');
+                      if (sel && sel.value) addSubjectForTeacher(sel.value);
+                    }}>Add</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <h3>Student Feedback (Anonymous) — AI Sentiment</h3>
+                {feedbacks.filter(f => (auth.user.subjects || []).includes(f.subject)).length === 0 ? (
+                  <p className="muted">No feedback yet for your subjects.</p>
+                ) : (
+                  feedbacks.filter(f => (auth.user.subjects || []).includes(f.subject)).map((f, idx) => (
+                    <div key={idx} className="feedback-box">
+                      <div className="muted small">{new Date(f.timestamp).toLocaleString()}</div>
+                      <p><strong>Subject:</strong> {f.subject}</p>
+                      <p><strong>Rating:</strong> {f.rating}</p>
+                      <p><strong>Comment:</strong> {f.text}</p>
+                      <p className={f.sentiment === 'positive' ? 'positive' : f.sentiment === 'negative' ? 'negative' : 'neutral'}>
+                        AI Sentiment: {f.sentiment}
+                      </p>
+                      <p className="muted small"><em>Submitted anonymously</em></p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="card">
+                <h3>Attendance Overview</h3>
+                <table>
+                  <thead><tr><th>Subject</th><th>Marked Sessions</th><th>Students Enrolled</th></tr></thead>
+                  <tbody>
+                    {(auth.user.subjects || []).map(s => {
+                      const enrolled = students.filter(st => (st.subjects||[]).includes(s)).length;
+                      return <tr key={s}><td>{s}</td><td>{attendanceCounts[s] || 0}</td><td>{enrolled}</td></tr>;
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <footer style={{marginTop:18, textAlign:'center'}} className="muted small">
+        
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
